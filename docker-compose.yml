@@ -1,0 +1,75 @@
+version: "3"
+services:
+  postgres-database:
+    image: postgres
+    container_name: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${POSTGRES_TIMEZONE}
+  api1:
+    build:
+      dockerfile: dockerfile.dev
+      context: api
+    container_name: api1
+    volumes:
+      - ./api:/usr/app/
+      - /usr/app/node_modules
+    environment:
+      - TZ=${SERVER_TIMEZONE}
+      - PG_HOST=${PG_HOST}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_USER=${PG_USER}
+      - PG_DATABASE=${PG_DATABASE}
+      - BCRYPT_SALT=${BCRYPT_SALT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME}
+      - REDIS_URL=${REDIS_URL}
+      - SENDGRID_USERNAME=${SENDGRID_USERNAME}
+      - SENDGRID_PASSWORD=${SENDGRID_PASSWORD}
+    restart: always
+    ports:
+      - "5000:3000"
+  api2:
+    build:
+      dockerfile: dockerfile.dev
+      context: api
+    container_name: api2
+    volumes:
+      - ./api:/usr/app/
+      - /usr/app/node_modules
+    environment:
+      - TZ=${SERVER_TIMEZONE}
+      - PG_HOST=${PG_HOST}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_USER=${PG_USER}
+      - PG_DATABASE=${PG_DATABASE}
+      - BCRYPT_SALT=${BCRYPT_SALT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME}
+      - REDIS_URL=${REDIS_URL}
+      - SENDGRID_USERNAME=${SENDGRID_USERNAME}
+      - SENDGRID_PASSWORD=${SENDGRID_PASSWORD}
+    restart: always
+  nginx:
+    build:
+      dockerfile: dockerfile.dev
+      context: ./reverse-proxy
+    container_name: nginx
+    ports:
+      - "80:80"
+  client:
+    build:
+      dockerfile: dockerfile.dev
+      context: ./client
+    container_name: client
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./client:/usr/app/
+      - /usr/app/node_modules
+  redis:
+    image: "redis:latest"
+    container_name: redis
